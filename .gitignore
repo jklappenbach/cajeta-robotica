@@ -1,0 +1,25 @@
+# Build artifacts
+/build/
+/build-*/
+*.o
+*.obj
+*.a
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Cajeta compiler/JIT scratch
+*.bc
+*.ll
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Per-clone work-state (cross-plan focus stacks); per-plan task stacks stay tracked
+/agents/state/
