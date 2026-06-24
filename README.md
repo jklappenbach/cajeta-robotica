@@ -13,8 +13,10 @@ foundation**, published under the package namespace `dev.cajeta.robotica.*`.
 
 - **One language from the matmul kernel that runs a policy down to the FOC setpoint on the
   wire** — no Python↔C++↔firmware seam. The math-heavy layers (transforms, fusion, dynamics,
-  estimation, control, inference) ride directly on Cajeta's native numpy/tensor/linalg/FFT/GPU
-  substrate.
+  estimation, control, inference) ride on the **`dev.cajeta.nucleo`** ML/scientific stack
+  (autograd · nn/optim · column · sparse/linalg · torch/scipy façades) over the **`cajeta.xpu`**
+  multi-target compute substrate (one kernel MIR → CPU / NVPTX / AMDGPU / SPIR-V — so a policy
+  runs on whatever silicon the edge robot carries). See `docs/research/nucleo-integration-analysis.md`.
 - **Family over a shared foundation.** One `transform` foundation defines SE(3)/SO(3) and the
   frame tree — and *one* quaternion + twist convention used everywhere (the coherence ROS's
   `tf`/`tf2` split never had). Focused libs depend on it, never upward.
@@ -46,7 +48,7 @@ all over the `transform` foundation.
 | `sim` | Simulation interface: MJCF/URDF model + sim/real sensor parity. | infra · heavy-dep edge |
 | `log` | Telemetry: MCAP container + Foxglove WebSocket protocol. | infra |
 | `safety` | E-stop, watchdogs, deterministic fault reaction, functional-safety hooks. | cross-cutting |
-| `ai` | On-device learned-policy inference (LeRobot/VLA) on the GPU/tensor stack. | forward-looking edge |
+| `ai` | On-device learned-policy inference (LeRobot/VLA) via `nucleo.nn`/`torch` façade + `nucleo.autograd` over `cajeta.xpu`. | forward-looking edge |
 
 ```
                  ┌────────────────────────── ai (policy inference) ───────────────────────────┐

@@ -76,6 +76,22 @@ consumer can place every pixel and point in space and time.
 - 1.c.iv — **No camera-intrinsic *calibration solver*.** This package *applies* a known
   intrinsic/extrinsic calibration; estimating it (checkerboard solve) is out of scope.
 
+### 1.d Substrate — núcleo representations the buffers ARE
+> `io.vision`'s output buffers are not bespoke types — they are núcleo substrate buffers, so a
+> downstream consumer (`fusion`/`estimation`/`ai`) needs no marshalling. Mapping (cajeta repo
+> `docs/specification/nucleo/`; gaps in `cajeta-robotica/docs/research/nucleo-integration-analysis.md`):
+- 1.d.i — **Canonical image buffer (§1.b.iii) IS a `cajeta.math.Tensor`** (row-major, typed);
+  decode/convert/debayer (§2.c) and filtering are `scipy.signal`/`ndimage` ops over it
+  (`scipy-facade-spec.md` §4/§10.1), fused via `nucleo-expr`.
+- 1.d.ii — **A point cloud IS a `nucleo.column` buffer / `Table<Point>`** — the *column ==
+  tensor-buffer == Arrow-buffer* invariant (`nucleo-column-spec.md` §1.1/§7) means one decode
+  is simultaneously dataframe-filterable, tensor-deprojectable, and zero-copy Arrow-exportable
+  (to pyarrow/Open3D) with no inter-subsystem boundary.
+- 1.d.iii — **PCD / `PointCloud2` codecs (§2.f) target núcleo-column buffers** (the family
+  "codec-over-recorded-bytes" pattern); deprojection/project math is `cajeta.math` over the
+  pinhole `Matrix<…>` (`syntax-sugar-spec.md` `@`). Native PCD/`PointCloud2` readers are an
+  `io.vision`-owned gap (not in núcleo's codec set).
+
 ---
 
 ## 2. Features

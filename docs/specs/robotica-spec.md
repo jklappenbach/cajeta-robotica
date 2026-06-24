@@ -17,10 +17,18 @@ small shared foundation**, published under the reverse-DNS namespace `dev.cajeta
 It is **not** part of the Cajeta language stdlib.
 
 ### 1.a Goals
-- 1.a.i — One coherent type system from the **GPU matmul kernel that runs a policy down to the
-  FOC setpoint on the wire** — no Python↔C++↔firmware seam.
-- 1.a.ii — Reuse Cajeta's existing **numpy/tensor/linalg/FFT/GPU** substrate; the math-heavy
-  layers (transforms, fusion, dynamics, estimation, control, inference) compound on it.
+- 1.a.i — One coherent type system from the **`cajeta.xpu` matmul kernel that runs a policy
+  down to the FOC setpoint on the wire** — no Python↔C++↔firmware seam. `cajeta.xpu` is the
+  multi-target compute substrate (one kernel MIR → CPU / NVPTX / AMDGPU / SPIR-V), so the same
+  policy runs on whatever silicon the edge robot carries.
+- 1.a.ii — Ride the **`dev.cajeta.nucleo`** ML/scientific stack and the `cajeta.xpu` compute
+  substrate beneath it; the math-heavy layers (transforms, fusion, dynamics, estimation,
+  control, inference) compound on **named núcleo layers**, not raw primitives:
+  tensors/linalg (`cajeta.math` + `nucleo.linalg`/`nucleo.sparse`), columnar buffers
+  (`nucleo.column` — the *column == tensor-buffer* invariant), optimization (`scipy.optimize`
+  façade), autodiff (`nucleo.autograd`, `@Grad`), neural modules (`nucleo.nn` / `torch`
+  façade). Spec set: cajeta repo `docs/specification/nucleo/`; per-layer mapping + gaps in
+  `docs/research/nucleo-integration-analysis.md`.
 - 1.a.iii — Run on Linux single-board computers (Raspberry Pi, Orange Pi, RISC-V) — the
   low-level wire protocols depend only on socketcan / serial / raw sockets / device nodes and
   are ISA-agnostic.
@@ -164,9 +172,13 @@ and functional-safety conformance hooks.
 
 ### 2.o `ai` — embodied-AI inference **[forward-looking]**
 Responsibility: on-device learned-policy inference and integration with the imitation/RL +
-VLA ecosystem, riding Cajeta's GPU/tensor stack.
+VLA ecosystem, riding the núcleo `nucleo.nn` / `torch`-façade module stack and `nucleo.autograd`
+over the `cajeta.xpu` compute substrate.
 - 2.o.i — Run a learned policy (vision+proprioception → action) on-device.
 - 2.o.ii — Load/deploy a policy from the LeRobot/VLA ecosystem; emit actions into `control`.
+  Policy weights load via the `torch` façade (`torch-facade-spec.md` §9 `state_dict`/`.pt`,
+  weights-only); the policy is a `nucleo.nn.Module` (`nucleo-nn-optim-spec.md`); the forward
+  pass runs as `cajeta.math` ops lowered through `cajeta.xpu`; `@Autocast` selects precision.
 - Models: LeRobot, SmolVLA / VLA.
 
 ---

@@ -66,6 +66,24 @@ lives in one type system, so there is no serialization tax across the inference�
   pass.** Inference is best-effort throughput; the deterministic guarantee belongs to
   `control` + `safety` below it.
 
+### 1.d Substrate — where each capability lands on núcleo
+> `ai` does **not** reinvent an inference runtime; it composes named layers of the
+> `dev.cajeta.nucleo` stack (cajeta repo `docs/specification/nucleo/`) over the `cajeta.xpu`
+> multi-target compute substrate. Per-layer mapping + open gaps:
+> `cajeta-robotica/docs/research/nucleo-integration-analysis.md`.
+- 1.d.i — **Artifact loading (§2.a):** `torch`-façade weights-only load
+  (`torch-facade-spec.md` §9 `state_dict`/`.pt`); the policy is a `nucleo.nn.Module`
+  (`nucleo-nn-optim-spec.md`). Policy **config** (architecture/hyperparams) is `ai`'s own loader.
+- 1.d.ii — **Forward pass (§2.c):** `cajeta.math` tensor ops lowered through `cajeta.xpu`
+  (CPU/NVPTX/AMDGPU/SPIR-V); `@Autocast` (`torch-facade-spec.md` §8) selects precision.
+  Inference is forward-only — no eager tape (`nucleo-autograd-spec.md` §4–5).
+- 1.d.iii — **Observation/preprocess (§2.b):** image resize/crop/normalize as `cajeta.math` /
+  `scipy.signal`/`ndimage` ops, GPU-side (`scipy-facade-spec.md` §4/§10.1).
+- 1.d.iv — **Gaps to track (núcleo plan-time):** dynamic batch-of-one (`torch-facade-spec.md`
+  [T4]), a distributions/sampling surface for stochastic policies (absent — propose), and a
+  real-time/hot-loop contract (absent across núcleo). On-device fine-tuning is *out of v1 scope*
+  (§1.c.i) but `nucleo.autograd` + `nucleo.optim` make it a cheap future capability.
+
 ---
 
 ## 2. Features
