@@ -62,9 +62,11 @@ candidate addition to a núcleo spec (or a new one) at plan time.
 4. **Distributions / sampling.** Stochastic policies (Gaussian/categorical action heads,
    diffusion-policy noise) need a `torch.distributions` equivalent. **Absent** from all núcleo
    specs. → add a distributions surface (façade or core).
-5. **GPU/on-device spatial index.** `scipy-facade` [S6]: KDTree may ride toffee's RT-as-compute
-   index or be a standalone CPU tree. Large on-GPU point clouds (ICP, radius search) need the
-   GPU path. → resolve [S6] with robotics as a consumer.
+5. **GPU/on-device spatial index — RESOLVED (2026-06-24).** `cajeta.xpu` provides an
+   RT-as-compute spatial index (RTNN, device-verified, graduated from the prism/caramelo
+   project); `scipy.spatial.KdTree`'s kNN/radius queries ride it (scipy `[S6]` resolved), and
+   robotica `estimation`/`io.vision` consume the *same* xpu primitive for ICP correspondence /
+   point-cloud nearest-neighbour. The GPU-spatial gap is filled.
 6. **`Vmap` for batched inference** exists as a transform combinator but `torch` façade v1
    doesn't wrap it. Minor; document that `Vmap(forward)` is the batched-inference path.
 7. **Image-preprocess utilities** (resize/crop/letterbox/normalize). Partly `scipy.ndimage`
